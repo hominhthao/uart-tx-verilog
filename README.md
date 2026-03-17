@@ -110,11 +110,11 @@ gtkwave sim/waveform/uart_tx.vcd
 
 ### Overview — full simulation
 
-![UART TX waveform overview](sim/waveform/uart_tx_waveform1.png)
+![UART TX waveform overview](sim/waveform/uart_tx_waveform2.png)
 
 ### Zoom — single UART frame
 
-![UART TX waveform zoom](sim/waveform/uart_tx_waveform2.png)
+![UART TX waveform zoom](sim/waveform/uart_tx_waveform1.png)
 
 ---
 
