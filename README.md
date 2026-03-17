@@ -127,6 +127,14 @@ The waveform below shows the UART transmission of data **0x41**.
 
 ---
 
+## Related
+
+- [uart-rx-verilog](https://github.com/hominhthao/uart-rx-verilog) — UART Receiver (RX) + Loopback Verification
+
+> Together, `uart-verilog` (TX) and `uart-rx-verilog` (RX) form a complete
+> **full-duplex UART 8N1** implementation verified end-to-end via loopback testbench.
+
+---
 # Author
 
 Ho Minh Thao
