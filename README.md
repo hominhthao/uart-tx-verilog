@@ -1,129 +1,129 @@
-# UART Transmitter in Verilog
+# UART Transmitter (TX) in Verilog
 
-This project implements a **UART (Universal Asynchronous Receiver/Transmitter) transmitter** using Verilog HDL.
-The design sends an **8-bit data frame** over a serial line following the standard UART protocol.
-
-The project also includes a **testbench for simulation** and **waveform verification using GTKWave**.
-
----
-
-# Project Structure
-
-```
-uart-verilog
-│
-├── src
-│   └── uart_tx.v        # UART transmitter RTL design
-│
-├── tb
-│   └── uart_tb.v        # Testbench for simulation
-│
-├── waveform
-│   └── uart_waveform.png # Simulation waveform screenshot
-│
-├── README.md
-└── .gitignore
-```
+This project implements a **UART Transmitter** using Verilog HDL, based on a
+Finite State Machine (FSM) that serializes 8-bit parallel input into a standard
+UART serial stream (8N1 format).
 
 ---
 
-# UART Frame Format
+## Features
 
-The UART transmitter sends data in the following format:
+- FSM-based UART transmitter
+- Parameterizable baud rate via `CLKS_PER_BIT`
+- 8-bit parallel-to-serial transmission (LSB first)
+- Start bit and stop bit handling
+- Verified with directed testbench using Icarus Verilog and GTKWave
 
+---
+
+## UART Frame Format (8N1)
 ```
-| Start |  Data[0] ... Data[7] | Stop |
-|   0   |     8 data bits      |  1   |
-```
-
-Explanation:
-
-* **Idle line** : logic `1`
-* **Start bit** : logic `0`
-* **Data bits** : transmitted **LSB first**
-* **Stop bit** : logic `1`
-
-Example transmission for data **0x41 (ASCII 'A')**:
-
-```
-Start  Data bits (LSB → MSB)     Stop
-  0      1 0 0 0 0 0 1 0          1
+Idle  Start   D0   D1   D2   D3   D4   D5   D6   D7   Stop  Idle
+  1     0     lsb  ...  ...  ...  ...  ...  ...  msb    1     1
+        ←──────────────── 10 bit periods ────────────────→
 ```
 
 ---
 
-# Design Overview
-
-The transmitter operates using a **Finite State Machine (FSM)**.
-
-States:
-
+## FSM State Diagram
 ```
 IDLE
+  ↓  (tx_start = 1)
+START_BIT
   ↓
-START
+DATA_BITS (8 bits, LSB first)
   ↓
-DATA (8 bits)
+STOP_BIT
   ↓
-STOP
+CLEANUP
   ↓
 IDLE
 ```
 
-Signal description:
+---
 
-| Signal    | Description                          |
-| --------- | ------------------------------------ |
-| clk       | System clock                         |
-| start     | Trigger signal to start transmission |
-| data[7:0] | Input data to transmit               |
-| tx        | Serial output line                   |
-| busy      | Indicates transmission in progress   |
+## Parameters
+
+| Parameter      | Default | Description                      |
+|----------------|---------|----------------------------------|
+| `CLKS_PER_BIT` | 868     | Clock cycles per UART bit period |
+
+**Baud rate formula:**
+```
+CLKS_PER_BIT = CLK_FREQ / BAUD_RATE
+```
+
+| Clock  | Baud Rate | CLKS_PER_BIT |
+|--------|-----------|--------------|
+| 50 MHz | 115200    | 434          |
+| 50 MHz | 57600     | 868          |
+| 25 MHz | 115200    | 217          |
 
 ---
 
-# Simulation
+## Port Description
 
-Simulation is performed using **Icarus Verilog** and **GTKWave**.
+| Port        | Dir    | Width | Description                        |
+|-------------|--------|-------|------------------------------------|
+| `clk`       | input  | 1     | System clock                       |
+| `rst_n`     | input  | 1     | Active-low synchronous reset       |
+| `tx_start`  | input  | 1     | Pulse HIGH to begin transmission   |
+| `tx_data`   | input  | 8     | Parallel data byte to transmit     |
+| `tx_serial` | output | 1     | UART serial output line            |
+| `tx_done`   | output | 1     | Pulses HIGH for 1 clk when TX done |
 
-Compile:
+---
 
+## Project Structure
 ```
-iverilog -o uart_tb tb/uart_tb.v src/uart_tx.v
-```
-
-Run simulation:
-
-```
-vvp uart_tb
-```
-
-Open waveform:
-
-```
-gtkwave uart.vcd
+uart-tx-verilog/
+├── src/
+│   └── uart_tx.v              # TX RTL module
+├── tb/
+│   └── uart_tb.v              # Directed testbench
+├── sim/
+│   └── waveform/
+│       ├── uart_tx_waveform1.png   # Overview waveform
+│       └── uart_tx_waveform2.png   # Zoom — single UART frame
+├── Makefile
+└── README.md
 ```
 
 ---
 
-# Simulation Result
+## Simulation
 
-The waveform below shows the UART transmission of data **0x41**.
+### Prerequisites
+- [Icarus Verilog](http://iverilog.icarus.com/)
+- [GTKWave](http://gtkwave.sourceforge.net/)
 
-* Start bit
-* 8 data bits (LSB first)
-* Stop bit
-
-![UART Waveform zoom](sim/waveform/uart_tx_waveform2.png)
+### Compile and run
+```bash
+iverilog -o sim/uart_sim src/uart_tx.v tb/uart_tb.v
+vvp sim/uart_sim
+gtkwave sim/waveform/uart_tx.vcd
+```
 
 ---
 
-# Tools Used
+## Simulation Waveform
 
-* Verilog HDL
-* Icarus Verilog
-* GTKWave
-* Git & GitHub
+### Overview — full simulation
+
+![UART TX waveform overview](sim/waveform/uart_tx_waveform1.png)
+
+### Zoom — single UART frame
+
+![UART TX waveform zoom](sim/waveform/uart_tx_waveform2.png)
+
+---
+
+## Tools Used
+
+- Verilog HDL
+- Icarus Verilog
+- GTKWave
+- Git & GitHub
 
 ---
 
@@ -131,17 +131,13 @@ The waveform below shows the UART transmission of data **0x41**.
 
 - [uart-rx-verilog](https://github.com/hominhthao/uart-rx-verilog) — UART Receiver (RX) + Loopback Verification
 
-> Together, `uart-verilog` (TX) and `uart-rx-verilog` (RX) form a complete
+> Together, `uart-tx-verilog` and `uart-rx-verilog` form a complete
 > **full-duplex UART 8N1** implementation verified end-to-end via loopback testbench.
 
 ---
-# Author
 
-Ho Minh Thao
-Electronics and Telecommunications Engineering Student
+## Author
 
----
-
-# License
-
-This project is open-source and available for learning and educational purposes.
+**Ho Minh Thao**
+Electronics & Telecommunications Engineering — HCMUT
+Interested in Digital IC Design, RTL Design, and VLSI Systems
