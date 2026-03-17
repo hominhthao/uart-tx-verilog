@@ -114,7 +114,7 @@ The waveform below shows the UART transmission of data **0x41**.
 * 8 data bits (LSB first)
 * Stop bit
 
-![UART Waveform](waveform/uart_waveform.png)
+![UART Waveform zoom](sim/waveform/uart_tx_waveform2.png)
 
 ---
 
